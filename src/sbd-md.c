@@ -790,18 +790,24 @@ int list_slots(struct servants_list_item *servants)
 	struct sbd_context *st;
 
 	for (s = servants; s; s = s->next) {
+		int rv = 0;
+
 		st = open_device(s->devname, LOG_WARNING);
-		if (!st) {
+		if (st) {
+			rv = slot_list(st);
+			close_device(st);
+
+		} else {
 			fprintf(stdout, "== disk %s unreadable!\n", s->devname);
-			continue;
+			rv = -1;
 		}
-		rc = slot_list(st);
-		close_device(st);
-		if (rc == -1) {
+
+		if (rv == -1) {
+			rc = -1;
 			fprintf(stdout, "== Slots on disk %s NOT dumped\n", s->devname);
 		}
 	}
-	return 0;
+	return rc;
 }
 
 int ping_via_slots(const char *name, struct servants_list_item *servants)
