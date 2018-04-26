@@ -1186,7 +1186,7 @@ int servant(const char *diskname, int mode, const void* argp)
 		}
 
 		if (s_mbox->cmd > 0) {
-			cl_log(LOG_INFO,
+			cl_log(LOG_NOTICE,
 			       "Received command %s from %s on disk %s",
 			       char2cmd(s_mbox->cmd), s_mbox->from, diskname);
 
