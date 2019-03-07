@@ -323,12 +323,24 @@ sbd_membership_connect(void)
 }
 
 static void
+sbd_membership_disconnect(void)
+{
+        if (get_cluster_type() == pcmk_cluster_unknown) {
+
+        } else {
+            crm_cluster_disconnect(&cluster);
+        }
+}
+
+static void
 sbd_membership_destroy(gpointer user_data)
 {
     cl_log(LOG_WARNING, "Lost connection to %s", name_for_cluster_type(get_cluster_type()));
 
     set_servant_health(pcmk_health_unclean, LOG_ERR, "Cluster connection terminated");
     notify_parent();
+
+    sbd_membership_disconnect();
 
     /* Attempt to reconnect, the watchdog will take the node down if the problem isn't transient */
     sbd_membership_connect();
