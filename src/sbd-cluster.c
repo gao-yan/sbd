@@ -174,6 +174,25 @@ cmap_dispatch_callback (gpointer user_data)
     return TRUE;
 }
 
+static void
+cmap_destory(void)
+{
+    if (cmap_source) {
+        g_source_destroy(cmap_source);
+        cmap_source = NULL;
+    }
+
+    if (track_handle) {
+        cmap_track_delete(cmap_handle, track_handle);
+        track_handle = 0;
+    }
+
+    if (cmap_handle) {
+        cmap_finalize(cmap_handle);
+        cmap_handle = 0;
+    }
+}
+
 static gboolean
 sbd_get_two_node(void)
 {
@@ -217,18 +236,7 @@ sbd_get_two_node(void)
     return TRUE;
 
 out:
-    if (cmap_source) {
-        g_source_destroy(cmap_source);
-        cmap_source = NULL;
-    }
-    if (track_handle) {
-        cmap_track_delete(cmap_handle, track_handle);
-        track_handle = 0;
-    }
-    if (cmap_handle) {
-        cmap_finalize(cmap_handle);
-        cmap_handle = 0;
-    }
+    cmap_destory();
 
     return FALSE;
 }
@@ -322,6 +330,18 @@ sbd_membership_connect(void)
     notify_timer_cb(NULL);
 }
 
+/*
+static void
+sbd_membership_disconnect(void)
+{
+        if (get_cluster_type() == pcmk_cluster_unknown) {
+
+        } else {
+            crm_cluster_disconnect(&cluster);
+        }
+}
+*/
+
 static void
 sbd_membership_destroy(gpointer user_data)
 {
@@ -329,6 +349,12 @@ sbd_membership_destroy(gpointer user_data)
 
     set_servant_health(pcmk_health_unclean, LOG_ERR, "Cluster connection terminated");
     notify_parent();
+
+    if(get_cluster_type() != pcmk_cluster_unknown) {
+#if SUPPORT_COROSYNC && CHECK_TWO_NODE
+        cmap_destory();
+#endif
+    }
 
     /* Attempt to reconnect, the watchdog will take the node down if the problem isn't transient */
     sbd_membership_connect();
