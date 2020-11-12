@@ -152,6 +152,34 @@ sbd_cmd_get_stdout() {
 	return $rc
 }
 
+sbd_cmd_check_error() {
+	local devices=${SBD_DEVS//;/ }
+        local cmd="$1"
+	local rc=0
+
+	for device in $devices; do
+		exec {fd}< <(sbd -d $device $cmd 2>&1 >/dev/null)
+		pid=$!
+
+		while true; do
+			sbd_cmd_output $pid $fd 1
+			local cmd_rc=$?
+
+			# No need to wait for a hanging one that has reported "sbd failed"
+			# But have to wait for a hanging one in unknown state
+			if [ $unknown_hanging -eq 0 ]; then
+				if [ $cmd_rc -ne 0 ]; then
+					rc=$cmd_rc
+				fi
+
+				break
+			fi
+		done
+	done
+
+	return $rc
+}
+
 sbd_check_device() {
 	if [ -z "$sbd_device" ]; then
 		ha_log.sh err "No sbd device(s) found in the configuration."
@@ -203,7 +231,7 @@ off|reset)
 status)
     sbd_check_device
     sbd_validate_timeout
-    error_output=$(sbd -d $sbd_device list 2>&1 >/dev/null)
+    error_output=$(sbd_cmd_check_error list)
     if [ $? -ne 0 ]; then
     	error_message=$(echo "$error_output" | grep -v "please check the logs")
     	ha_log.sh err "sbd list failed: $error_message"
