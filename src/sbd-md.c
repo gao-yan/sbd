@@ -293,6 +293,10 @@ header_read(struct sbd_context *st, struct sector_header_s *s_header)
 	timeout_loop     = s_header->timeout_loop;
 	timeout_msgwait  = s_header->timeout_msgwait;
 
+	if (timeout_watchdog_warn_is_default) {
+		timeout_watchdog_warn = calculate_timeout_watchdog_warn(timeout_watchdog);
+	}
+
 	return 0;
 }
 
@@ -1004,6 +1008,11 @@ void open_any_device(struct servants_list_item *servants)
 		timeout_allocate = hdr_cur->timeout_allocate;
 		timeout_loop = hdr_cur->timeout_loop;
 		timeout_msgwait = hdr_cur->timeout_msgwait;
+
+		if (timeout_watchdog_warn_is_default) {
+			timeout_watchdog_warn = calculate_timeout_watchdog_warn(timeout_watchdog);
+		}
+
 	} else { 
 		cl_log(LOG_ERR, "No devices were available at start-up within %i seconds.",
 				timeout_startup);
