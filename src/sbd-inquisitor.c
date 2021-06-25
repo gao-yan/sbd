@@ -999,6 +999,16 @@ int main(int argc, char **argv, char **envp)
         }
 
 	while ((c = getopt(argc, argv, "czC:DPRTWZhvw:d:n:p:1:2:3:4:5:t:I:F:S:s:r:")) != -1) {
+		const char *sanitized_optarg = NULL;
+
+		if (optarg != NULL) {
+			sanitized_optarg = sanitize_option_value(optarg);
+
+			if (sanitized_optarg == NULL) {
+				continue;
+			}
+		}
+
 		switch (c) {
 		case 'D':
 			break;
@@ -1011,11 +1021,11 @@ int main(int argc, char **argv, char **envp)
 			cl_log(LOG_INFO, "Realtime mode deactivated.");
 			break;
 		case 'S':
-			start_mode = atoi(optarg);
+			start_mode = atoi(sanitized_optarg);
 			cl_log(LOG_INFO, "Start mode set to: %d", (int)start_mode);
 			break;
 		case 's':
-			timeout_startup = atoi(optarg);
+			timeout_startup = atoi(sanitized_optarg);
 			cl_log(LOG_INFO, "Start timeout set to: %d", (int)timeout_startup);
 			break;
 		case 'v':
@@ -1044,12 +1054,12 @@ int main(int argc, char **argv, char **envp)
 		case 'w':
                         cl_log(LOG_NOTICE, "Using watchdog device '%s'", watchdogdev);
                         free(watchdogdev);
-                        watchdogdev = strdup(optarg);
+                        watchdogdev = strdup(sanitized_optarg);
                         watchdogdev_is_default = false;
 			break;
 		case 'd':
 #if SUPPORT_SHARED_DISK
-			if (recruit_servant(optarg, 0) != 0) {
+			if (recruit_servant(sanitized_optarg, 0) != 0) {
 				fprintf(stderr, "Invalid device: %s\n", optarg);
 				exit_status = -1;
 				goto out;
@@ -1070,48 +1080,48 @@ int main(int argc, char **argv, char **envp)
 			disk_priority = 0;
 			break;
 		case 'n':
-			local_uname = strdup(optarg);
+			local_uname = strdup(sanitized_optarg);
 			cl_log(LOG_INFO, "Overriding local hostname to %s", local_uname);
 			break;
 		case 'p':
-			pidfile = strdup(optarg);
+			pidfile = strdup(sanitized_optarg);
 			cl_log(LOG_INFO, "pidfile set to %s", pidfile);
 			break;
 		case 'C':
-			timeout_watchdog_crashdump = atoi(optarg);
+			timeout_watchdog_crashdump = atoi(sanitized_optarg);
 			cl_log(LOG_INFO, "Setting crashdump watchdog timeout to %d",
 					(int)timeout_watchdog_crashdump);
 			break;
 		case '1':
-			timeout_watchdog = atoi(optarg);
+			timeout_watchdog = atoi(sanitized_optarg);
 			break;
 		case '2':
-			timeout_allocate = atoi(optarg);
+			timeout_allocate = atoi(sanitized_optarg);
 			break;
 		case '3':
-			timeout_loop = atoi(optarg);
+			timeout_loop = atoi(sanitized_optarg);
 			break;
 		case '4':
-			timeout_msgwait = atoi(optarg);
+			timeout_msgwait = atoi(sanitized_optarg);
 			break;
 		case '5':
-			timeout_watchdog_warn = atoi(optarg);
+			timeout_watchdog_warn = atoi(sanitized_optarg);
 			do_calculate_timeout_watchdog_warn = false;
 			cl_log(LOG_INFO, "Setting latency warning to %d",
 					(int)timeout_watchdog_warn);
 			break;
 		case 't':
-			servant_restart_interval = atoi(optarg);
+			servant_restart_interval = atoi(sanitized_optarg);
 			cl_log(LOG_INFO, "Setting servant restart interval to %d",
 					(int)servant_restart_interval);
 			break;
 		case 'I':
-			timeout_io = atoi(optarg);
+			timeout_io = atoi(sanitized_optarg);
 			cl_log(LOG_INFO, "Setting IO timeout to %d",
 					(int)timeout_io);
 			break;
 		case 'F':
-			servant_restart_count = atoi(optarg);
+			servant_restart_count = atoi(sanitized_optarg);
 			cl_log(LOG_INFO, "Servant restart count set to %d",
 					(int)servant_restart_count);
 			break;
@@ -1119,7 +1129,7 @@ int main(int argc, char **argv, char **envp)
 			if (timeout_action) {
 				free(timeout_action);
 			}
-			timeout_action = strdup(optarg);
+			timeout_action = strdup(sanitized_optarg);
 			break;
 		case 'h':
 			usage();
