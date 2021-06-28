@@ -1052,10 +1052,10 @@ int main(int argc, char **argv, char **envp)
 			W_count++;
 			break;
 		case 'w':
-                        cl_log(LOG_NOTICE, "Using watchdog device '%s'", watchdogdev);
                         free(watchdogdev);
                         watchdogdev = strdup(sanitized_optarg);
                         watchdogdev_is_default = false;
+                        cl_log(LOG_NOTICE, "Using watchdog device '%s'", watchdogdev);
 			break;
 		case 'd':
 #if SUPPORT_SHARED_DISK
