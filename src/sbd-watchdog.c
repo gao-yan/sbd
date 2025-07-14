@@ -373,6 +373,18 @@ watchdog_populate_list(void)
                                 SYS_CHAR_DEV_DIR "/%d:%d/device/driver",
                                 major(wdg->dev), minor(wdg->dev));
                     len = readlink(entry_name, buf, sizeof(buf) - 1);
+
+                    /* A platform watchdog device such as `wdat_wdt` is present
+                     * as `/sys/devices/platform/wdat_wdt` where there's the
+                     * symlink `/sys/devices/platform/wdat_wdt/driver`
+                     */
+                    if (len <= 0) {
+                        snprintf(entry_name, sizeof(entry_name),
+                                 "/sys/devices/platform/%s/driver",
+                                 wdg->dev_ident);
+                        len = readlink(entry_name, buf, sizeof(buf) - 1);
+                    }
+
                     if (len > 0) {
                         buf[len] = '\0';
                         wdg->dev_driver = strdup(basename(buf));
