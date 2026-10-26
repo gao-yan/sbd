@@ -622,6 +622,12 @@ clean_up(int rc)
 	}
 #endif
 
+    /* no sense in keeping the CIB XML around anymore */
+	if (current_cib) {
+		free_xml(current_cib);
+		current_cib = NULL;
+	}
+
 	if (rc >= 0) {
 		exit(rc);
 	}
