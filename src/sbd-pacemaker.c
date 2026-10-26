@@ -571,6 +571,7 @@ mon_refresh_state(gpointer user_data)
 
     if (cli_config_update(&cib_copy, NULL, FALSE) == FALSE) {
         cl_log(LOG_WARNING, "cli_config_update() failed - forcing reconnect to CIB");
+        free_xml(cib_copy);
         if (cib) {
             cib->cmds->signoff(cib);
         }
