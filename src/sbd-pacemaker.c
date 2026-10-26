@@ -557,6 +557,18 @@ mon_refresh_state(gpointer user_data)
     }
 
     cib_copy = copy_xml(current_cib);
+    /* Since Pacemaker-2.1.6, copy_xml() ensures a non-NULL return */
+    if (cib_copy == NULL) {
+        /* Preserve the previous behavior as with passing NULL to
+         * cli_config_update() and failing subsequently - just with a more
+         * meaningful warning. */
+        cl_log(LOG_WARNING, "copy_xml() failed - forcing reconnect to CIB");
+        if (cib) {
+            cib->cmds->signoff(cib);
+        }
+        return FALSE;
+    }
+
     if (cli_config_update(&cib_copy, NULL, FALSE) == FALSE) {
         cl_log(LOG_WARNING, "cli_config_update() failed - forcing reconnect to CIB");
         if (cib) {
